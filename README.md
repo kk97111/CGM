@@ -1,79 +1,112 @@
 # Anonymous Repository for ARR Submission
 
-This repository contains the code implementation for Rethinking Co-citation: A Context-Level Graph Model for Citation Recommendation, which is submitted to ARR 2026.
+This repository contains the code implementation of "Rethinking Co-citation: A Context-Level Graph Model for Citation Recommendation", submitted to ARR 2026.
 
-The repository is anonymized for double-blind review. All identifying information will be released after acceptance.
+This repository is anonymized for double-blind review. All identifying information will be released after acceptance.
 
+## Overview
 
-The overview of the proposed compressed graph model (CGM) is as follows:
+The overview of the proposed Compressed Graph Model (CGM) is shown below.
 
 ![Overview](main.png)
 
-### Dataset
-We adopted 4 widely used public datasets, namely:
+## Datasets
+
+We adopt four widely used public datasets:
 - FullPaperPeerRead
 - ACL-200
 - RefSeer
 - ArXiv
 
-### Phases
-Our model can be tested with 2 phases:
-- prefech: no candidates is reqired, recommend the citations from the entire corpus
-- rerank: with provided candidate list, rerank the candidates in the candidate list.
+## Evaluation Phases
 
----
+Our model supports two evaluation phases:
+- `prefetch`: Recommend citations from the entire corpus (no candidate list required).
+- `rerank`: Re-rank a provided candidate list.
 
 ## 1. Environment
 
-### Requirement:
-```md
+### Requirements
+
 - Python >= 3.10
 - transformers==4.57.1
-- torch == 2.9.0
+- torch==2.9.0
 - spacy==3.8.7
 - scikit-learn==1.7.2
 
-```
+### Install required Python packages
 
-### Install the reqired python packages
 ```bash
 pip install -r requirements.txt
 ```
 
 ## 2. Work flow
 ### Step 1: Data Preparation
-To run our code, download data from  [Google Drive](https://drive.google.com/drive/u/0/folders/11n4YVHgUPfzetJi-y5voFpmRIjiBM0lQ)
+Download the processed dataset files from:
+- [Google Drive](https://drive.google.com/drive/u/0/folders/11n4YVHgUPfzetJi-y5voFpmRIjiBM0lQ)
 
-To run our code with rerank phase, you need to generate a test file with candidate list. By default, we are using BM25 to form the candidate list of 100 candidates, adding in the target if target is not in the top 100.
 
+Set the dataset root directory:
 ```bash
-python generate_candidates.py --dataset_root your_path_to_data --dataset_name peerread --model_type bm25 --top_k 100
+export DATASET_ROOT=/path/to/dataset_root
 ```
 
-This will generate a file test_candidates.json, stored in the same dataset folder, each test data is associated with 100 candidate for reranking.
+### Step 2: Candidate Generation (for rerank phase)
+To run the model in the rerank phase, you need a test file with candidate lists.
+
+By default, we use BM25 to generate a candidate list of top 100 papers per test context. If the ground-truth cited paper is not in the top-100 list, we add it to the candidate list to ensure evaluation is valid.
+
+```bash
+python generate_candidates.py \
+  --dataset_root $DATASET_ROOT \
+  --dataset_name peerread \
+  --model_type bm25 \
+  --top_k 100
+
+```
+This generates test_candidates.json under the corresponding dataset folder.
 
 
-### 2. Run Experiment
-To quickly run the CMG model with different hyper-parameters, run bash in terminal:
+### Step 3: Run Experiments
+
+#### Option A: Hyper-parameter sweep
 ```bash
 bash run.sh
 ```
-
-To test our model in prefecth phase, run:
+#### Option B: Run a single experiment
+Prefetch phase:
 ```bash
-CUDA_VISIBLE_DEVICES=0 python cgm.py --phase prefetch --dataset_root your_path_to_data --dataset_name peerread --top_k 1000 epochs 10 --num_node 2500 --mode hybrid --compression_mode --merge_num 4
+CUDA_VISIBLE_DEVICES=0 python cgm.py \
+  --phase prefetch \
+  --dataset_root $DATASET_ROOT \
+  --dataset_name peerread \
+  --top_k 1000 \
+  --epochs 10 \
+  --num_nodes 2500 \
+  --mode hybrid \
+  --compression_mode both \
+  --merge_num 4
+
 ```
 
-To test our model in rerank phase, run:
+Rerank phase:
 ```bash
-CUDA_VISIBLE_DEVICES=0 python cgm.py --phase rerank --dataset_root your_path_to_data --dataset_name peerread --top_k 100 epochs 10 --num_node 2500 --mode hybrid --compression_mode --merge_num 4
+CUDA_VISIBLE_DEVICES=0 python cgm.py \
+  --phase rerank \
+  --dataset_root $DATASET_ROOT \
+  --dataset_name peerread \
+  --top_k 100 \
+  --epochs 10 \
+  --num_nodes 2500 \
+  --mode hybrid \
+  --compression_mode both \
+  --merge_num 4
 ```
 
-### 3. Ablation Studies
-
-Control of the following parameters for ablation studies:
-- Vanilla: --mode vanilla
-- w/o GC: 
-- w/o structure
-- w/o semantic
-- w/o AGG
+## 3. Ablation Studies
+Control the parameters when running for ablation studies:
+- Vanilla model: --mode vanilla
+- w/o GCN: --no_GCN
+- w/o structure: --compression_mode semantic
+- w/o semantic: --compression_mode structure
+- w/o AGG: (please specify the corresponding flag/setting in the implementation)
