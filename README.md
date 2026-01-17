@@ -42,7 +42,7 @@ pip install -r requirements.txt
 
 ## 2. Work flow
 ### Step 1: Data Preparation
-Download the processed dataset files from:
+Download the dataset files from the public source:
 - [Google Drive](https://drive.google.com/drive/u/0/folders/11n4YVHgUPfzetJi-y5voFpmRIjiBM0lQ)
 
 
