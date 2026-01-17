@@ -7,7 +7,7 @@ The repository is anonymized for double-blind review. All identifying informatio
 
 The overview of the proposed compressed graph model (CGM) is as follows:
 
-![Overview](figures/main.png)
+![Overview](main.png)
 
 ### Dataset
 We adopted 4 widely used public datasets, namely:
